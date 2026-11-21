@@ -28,6 +28,8 @@
   .pill { display:inline-block; margin:16px 0 10px; padding:.45rem 1rem; border:2px solid var(--teal); border-radius:999px; font-weight:800; letter-spacing:.03em; background:rgba(4,32,28,.55); }
   .plan { margin:0 0 14px; color:var(--txt); font-size:1rem; max-width:20rem; }
   .plan span { display:block; }
+  .plan .lugar { color:var(--mut); margin:.05rem 0 .35rem; }
+  .plan .lugar::before { content:"📍 "; }
   .escuchar { display:inline-flex; align-items:center; gap:.6rem; width:auto; padding:.6rem 1.1rem; font-size:1rem; font-weight:700; color:var(--txt);
               background:rgba(4,32,28,.55); border:2px solid var(--pink); border-radius:999px; cursor:pointer; }
   .escuchar svg { width:22px; height:22px; fill:var(--pink); }
@@ -62,6 +64,10 @@
   .hecho { text-align:center; padding:1.4rem .4rem; }
   .hecho h2 { font-size:1.6rem; }
   .hecho p { color:var(--mut); }
+  .acceso { margin:1rem 0 0; padding:.9rem; border:2px dashed var(--teal); border-radius:14px; background:rgba(3,24,21,.7); }
+  .acceso p { margin:.2rem 0; color:var(--mut); }
+  .acceso .dato { color:var(--txt); font-size:1.15rem; }
+  .acceso strong { color:var(--pink); letter-spacing:.06em; }
   .aviso { margin:-8px 14px 28px; padding:1.2rem; border:2px solid var(--line); border-radius:18px; background:var(--card); text-align:center; }
   [hidden] { display:none !important; }
   .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
@@ -78,7 +84,7 @@
     </div>
     <h1>Te han elegido. <span class="q">¿Aceptas el reto?</span></h1>
     <p class="pill">19 DIC 2026 · 13:00 h</p>
-    <p class="plan"><span>Brunch y juegos · 13:00 h</span><span>Después, tardeo en Bling Bling</span></p>
+    <p class="plan"><span>Brunch y juegos · 13:00 h</span><span class="lugar">IQG · Nena Casas 71</span><span>Después, tardeo en Bling Bling</span></p>
     <button id="escuchar" class="escuchar" type="button" aria-label="Escuchar invitación">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
       <span id="escucharTxt">Escuchar invitación</span>
@@ -92,6 +98,12 @@
     <div class="field">
       <label class="t" for="nombre">¿Cómo te llamas?</label>
       <input id="nombre" type="text" maxlength="40" autocomplete="given-name" placeholder="Tu nombre">
+    </div>
+
+    <div class="field">
+      <label class="t" for="pin">Crea tu PIN (4 números)</label>
+      <input id="pin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="0000">
+      <p class="ayuda">Tu nombre y tu PIN serán tu acceso el día del juego. <strong>Apúntalos en algún sitio.</strong></p>
     </div>
 
     <div class="field">
@@ -128,6 +140,11 @@
   <section id="hecho" class="card hecho" hidden role="status">
     <h2>Inscripción <span>completada.</span></h2>
     <p style="font-size:1.2rem;color:var(--txt)">Nos vemos en el juego.</p>
+    <div class="acceso" id="acceso" hidden>
+      <p>Apunta tu acceso para el día del juego:</p>
+      <p class="dato">Nombre: <strong id="aNombre"></strong></p>
+      <p class="dato">PIN: <strong id="aPin"></strong></p>
+    </div>
   </section>
 
   <p id="cerrado" class="aviso" role="status" hidden>Este enlace no es válido. Pide el enlace al organizador.</p>
@@ -211,10 +228,14 @@ $("escuchar").addEventListener("click", () => {
 });
 
 /* ------------------------------------------------------------------ estado inicial */
-function mostrarHecho() {
+function mostrarHecho(nombre, pin) {
   $("form").hidden = true; $("cerrado").hidden = true; $("hecho").hidden = false;
+  if (nombre && pin) { $("aNombre").textContent = nombre; $("aPin").textContent = pin; $("acceso").hidden = false; }
 }
-try { if (localStorage.getItem("sg_invitado")) mostrarHecho(); } catch (e) {}
+try {
+  const g = localStorage.getItem("sg_invitado");
+  if (g) { let d = null; try { d = JSON.parse(g); } catch (e) {} mostrarHecho(d && d.nombre, d && d.pin); }
+} catch (e) {}
 if ($("hecho").hidden) {
   if (/^[A-Za-z0-9]{10,20}$/.test(clave)) $("form").hidden = false; else $("cerrado").hidden = false;
 }
@@ -232,8 +253,9 @@ function uuid() {
     return (c === "x" ? r : (r & 3) | 8).toString(16);
   });
 }
-function validar() { $("enviar").disabled = !(archivo && $("nombre").value.trim().length >= 2); }
+function validar() { $("enviar").disabled = !(archivo && $("nombre").value.trim().length >= 2 && /^[0-9]{4}$/.test($("pin").value)); }
 $("nombre").addEventListener("input", validar);
+$("pin").addEventListener("input", () => { $("pin").value = $("pin").value.replace(/[^0-9]/g, "").slice(0, 4); validar(); });
 $("anadir").addEventListener("click", () => $("foto").click());
 $("avatar").addEventListener("click", () => $("foto").click());
 $("foto").addEventListener("change", (e) => {
@@ -264,6 +286,8 @@ $("form").addEventListener("submit", async (ev) => {
   $("err").hidden = true;
   const nombre = $("nombre").value.replace(/\s+/g, " ").trim();
   if (nombre.length < 2 || nombre.length > 40) return fallo("Escribe tu nombre (entre 2 y 40 letras).");
+  const pin = $("pin").value;
+  if (!/^[0-9]{4}$/.test(pin)) return fallo("Elige un PIN de 4 números.");
   $("enviar").disabled = true; $("enviarTxt").textContent = "Enviando…";
   let blob;
   try { blob = await aJpeg(archivo); } catch (e) { return fallo("No se pudo leer la foto. Prueba con otra (JPG o PNG)."); }
@@ -274,13 +298,14 @@ $("form").addEventListener("submit", async (ev) => {
   try {
     const up = await fetch(SUPABASE_URL + "/storage/v1/object/fotos/" + ruta, { method: "POST", headers: { ...h, "Content-Type": "image/jpeg", "x-upsert": "false" }, body: blob });
     if (!up.ok) return fallo(up.status === 403 || up.status === 400 ? "Este enlace no es válido o está cerrado." : "No se pudo subir la foto. Inténtalo de nuevo.");
-    const ins = await fetch(SUPABASE_URL + "/rest/v1/invitados", { method: "POST", headers: { ...h, "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ nombre, codigo, foto: ruta }) });
+    const ins = await fetch(SUPABASE_URL + "/rest/v1/invitados", { method: "POST", headers: { ...h, "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ nombre, pin, codigo, foto: ruta }) });
+    if (ins.status === 409) return fallo("Ese nombre ya está cogido. Añade tu apellido o una inicial.");
     if (!ins.ok) return fallo("No se pudo guardar. Inténtalo de nuevo.");
   } catch (e) {
     return fallo("Sin conexión. Inténtalo de nuevo cuando vuelva la señal.");
   }
-  try { localStorage.setItem("sg_invitado", "1"); } catch (e) {}
-  mostrarHecho();
+  try { localStorage.setItem("sg_invitado", JSON.stringify({ nombre, pin })); } catch (e) {}
+  mostrarHecho(nombre, pin);
   acordeVictoria();
 });
 </script>
