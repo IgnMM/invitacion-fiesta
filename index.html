@@ -64,6 +64,8 @@
   .hecho { text-align:center; padding:1.4rem .4rem; }
   .hecho h2 { font-size:1.6rem; }
   .hecho p { color:var(--mut); }
+  .cambiolink { text-align:center; margin:-10px 14px 28px; }
+  .enlace { background:none; border:0; color:var(--teal); font:inherit; text-decoration:underline; cursor:pointer; padding:.4rem; }
   .acceso { margin:1rem 0 0; padding:.9rem; border:2px dashed var(--teal); border-radius:14px; background:rgba(3,24,21,.7); }
   .acceso p { margin:.2rem 0; color:var(--mut); }
   .acceso .dato { color:var(--txt); font-size:1.15rem; }
@@ -146,6 +148,35 @@
       <p class="dato">PIN: <strong id="aPin"></strong></p>
     </div>
   </section>
+
+  <p id="irCambio" class="cambiolink" hidden><button type="button" id="irCambioBtn" class="enlace">¿Ya te apuntaste? Cambiar mi foto</button></p>
+
+  <form id="cambio" class="card" hidden novalidate>
+    <h2>Cambia tu <span>foto</span></h2>
+    <p class="sub">Entra con el nombre y el PIN con los que te apuntaste.</p>
+    <div class="field">
+      <label class="t" for="cNombre">Tu nombre</label>
+      <input id="cNombre" type="text" maxlength="40" autocomplete="off" placeholder="Tu nombre">
+    </div>
+    <div class="field">
+      <label class="t" for="cPin">Tu PIN</label>
+      <input id="cPin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="0000">
+    </div>
+    <div class="field">
+      <div class="fotofila">
+        <div id="cAvatar" class="avatar"><img id="cPrev" alt="Vista previa de tu nueva foto"></div>
+        <div>
+          <button id="cAnadir" class="anadir" type="button"><span id="cAnadirTxt">Elegir nueva foto</span></button>
+          <p class="ayuda">Una foto de frente, con buena luz.</p>
+        </div>
+      </div>
+      <input id="cFoto" class="sr" type="file" accept="image/*" tabindex="-1" aria-label="Elegir nueva foto">
+    </div>
+    <button id="cEnviar" class="acepto" type="submit" disabled><span id="cEnviarTxt">Guardar mi nueva foto</span></button>
+    <p id="cErr" class="err" role="alert" hidden></p>
+    <p id="cOk" class="aviso" role="status" hidden>Foto cambiada. Nos vemos en el juego.</p>
+    <p class="cambiolink"><button type="button" id="volver" class="enlace">Volver</button></p>
+  </form>
 
   <p id="cerrado" class="aviso" role="status" hidden>Este enlace no es válido. Pide el enlace al organizador.</p>
 </div>
@@ -311,6 +342,65 @@ $("form").addEventListener("submit", async (ev) => {
   }
   try { localStorage.setItem("sg_invitado", JSON.stringify({ nombre, pin })); } catch (e) {}
   mostrarHecho(nombre, pin);
+  acordeVictoria();
+});
+
+/* ------------------------------------------------------------------ cambiar la foto (nombre + PIN) */
+const enlaceValido = /^[A-Za-z0-9]{10,20}$/.test(clave);
+let cArchivo = null;
+function actualizaEnlace() { $("irCambio").hidden = !enlaceValido || !$("cambio").hidden; }
+actualizaEnlace();
+function cValidar() { $("cEnviar").disabled = !(cArchivo && $("cNombre").value.trim().length >= 2 && /^[0-9]{4}$/.test($("cPin").value)); }
+function abrirCambio() {
+  $("form").hidden = true; $("hecho").hidden = true; $("cerrado").hidden = true; $("cambio").hidden = false; actualizaEnlace();
+  $("cErr").hidden = true; $("cOk").hidden = true;
+  try { const d = JSON.parse(localStorage.getItem("sg_invitado") || "null"); if (d) { $("cNombre").value = d.nombre || ""; $("cPin").value = d.pin || ""; } } catch (e) {}
+  cValidar();
+}
+$("irCambioBtn").addEventListener("click", abrirCambio);
+$("volver").addEventListener("click", () => {
+  $("cambio").hidden = true;
+  let hecho = false; try { hecho = !!localStorage.getItem("sg_invitado"); } catch (e) {}
+  if (hecho) $("hecho").hidden = false; else $("form").hidden = false;
+  actualizaEnlace();
+});
+$("cNombre").addEventListener("input", cValidar);
+$("cPin").addEventListener("input", () => { $("cPin").value = $("cPin").value.replace(/[^0-9]/g, "").slice(0, 4); cValidar(); });
+$("cAnadir").addEventListener("click", () => $("cFoto").click());
+$("cAvatar").addEventListener("click", () => $("cFoto").click());
+$("cFoto").addEventListener("change", (e) => {
+  cArchivo = e.target.files[0] || null;
+  if (cArchivo) { $("cPrev").src = URL.createObjectURL(cArchivo); $("cAvatar").classList.add("con"); $("cAnadirTxt").textContent = "Elegir otra foto"; }
+  else { $("cAvatar").classList.remove("con"); $("cAnadirTxt").textContent = "Elegir nueva foto"; }
+  cValidar();
+});
+function cFallo(t) { $("cErr").textContent = t; $("cErr").hidden = false; $("cEnviarTxt").textContent = "Guardar mi nueva foto"; cValidar(); }
+$("cambio").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  $("cErr").hidden = true; $("cOk").hidden = true;
+  const nombre = $("cNombre").value.replace(/\s+/g, " ").trim();
+  const pin = $("cPin").value;
+  if (nombre.length < 2 || !/^[0-9]{4}$/.test(pin) || !cArchivo) return;
+  $("cEnviar").disabled = true; $("cEnviarTxt").textContent = "Enviando…";
+  let blob;
+  try { blob = await aJpeg(cArchivo); } catch (e) { return cFallo("No se pudo leer la foto. Prueba con otra (JPG o PNG)."); }
+  const ruta = clave + "/" + uuid() + ".jpg";
+  const h = { apikey: SUPABASE_KEY };
+  try {
+    const up = await fetch(SUPABASE_URL + "/storage/v1/object/fotos/" + ruta, { method: "POST", headers: { ...h, "Content-Type": "image/jpeg", "x-upsert": "false" }, body: blob });
+    if (!up.ok) return cFallo(up.status === 403 || up.status === 400 ? "Este enlace no es válido o está cerrado." : "No se pudo subir la foto. Inténtalo de nuevo.");
+    const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/cambiar_foto", { method: "POST", headers: { ...h, "Content-Type": "application/json" }, body: JSON.stringify({ p_nombre: nombre, p_pin: pin, p_foto: ruta }) });
+    if (!r.ok) return cFallo("No se pudo guardar. Inténtalo de nuevo.");
+    const res = await r.json();
+    if (res === "no") return cFallo("Nombre o PIN incorrectos. Escríbelos tal y como te apuntaste.");
+    if (res === "bloqueado") return cFallo("Demasiados intentos. Espera 10 minutos e inténtalo de nuevo.");
+    if (res !== "ok") return cFallo("No se pudo guardar. Inténtalo de nuevo.");
+  } catch (e) {
+    return cFallo("Sin conexión. Inténtalo de nuevo cuando vuelva la señal.");
+  }
+  try { localStorage.setItem("sg_invitado", JSON.stringify({ nombre, pin })); } catch (e) {}
+  $("cOk").hidden = false; $("cEnviarTxt").textContent = "Guardar mi nueva foto"; $("cEnviar").disabled = true;
+  cArchivo = null; $("cAvatar").classList.remove("con"); $("cAnadirTxt").textContent = "Elegir nueva foto";
   acordeVictoria();
 });
 </script>
