@@ -4,119 +4,243 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>SQUID GAME · Únete</title>
+<meta name="theme-color" content="#04201c">
+<title>Te han elegido · Cumpleaños de Ignacio</title>
 <style>
-  :root { --bg:#070909; --card:#151818; --line:#2b312f; --txt:#eef2f0; --mut:#9aa6a1; --pink:#ed1b76; --teal:#029f98; }
+  :root { --bg:#04201c; --bg2:#031512; --card:rgba(4,32,28,.88); --line:#1b8f7c; --txt:#f3ecdf; --mut:#a9bdb6; --pink:#ff1f7a; --teal:#19c3a6; }
   * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--txt); font:16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  .wrap { max-width:420px; margin:0 auto; padding:24px 16px 48px; }
-  .shapes { display:flex; gap:10px; margin-bottom:10px; }
-  .shapes i { width:26px; height:26px; border:3px solid var(--pink); display:block; }
-  .shapes i:nth-child(1) { border-radius:50%; }
-  .shapes i:nth-child(2) { border-color:var(--teal); clip-path:polygon(50% 0, 100% 100%, 0 100%); background:var(--teal); opacity:.9; }
-  h1 { font-size:2rem; line-height:1.05; margin:.2rem 0 .3rem; text-transform:uppercase; }
-  h1 span { color:var(--pink); }
-  .date { color:var(--mut); letter-spacing:.2em; margin:0 0 1.2rem; }
-  .plan { margin:-.6rem 0 1.2rem; color:var(--txt); }
-  .plan b { color:var(--pink); }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px; }
-  label { display:block; margin:.2rem 0 .35rem; color:var(--mut); }
-  input[type=text] { width:100%; padding:.8rem; font-size:1rem; color:var(--txt); background:#0d1010; border:1px solid var(--line); border-radius:12px; }
-  input[type=file] { width:100%; color:var(--mut); }
-  .field { margin-bottom:1rem; }
-  .prev { width:160px; height:160px; object-fit:cover; border-radius:16px; border:3px solid var(--teal); margin-top:.6rem; display:none; }
-  button { width:100%; padding:.9rem; font-size:1.05rem; font-weight:700; color:#fff; background:var(--pink); border:0; border-radius:12px; }
-  button:disabled { opacity:.45; }
-  .err { color:#ff8aa8; margin:.6rem 0 0; }
-  .code { font:700 2rem/1 ui-monospace, Consolas, monospace; letter-spacing:.15em; text-align:center; padding:.9rem; background:#0d1010; border:2px dashed var(--teal); border-radius:14px; margin:.8rem 0; user-select:all; }
-  .mut { color:var(--mut); }
+  html { background: var(--bg2); }
+  body { margin:0; min-height:100vh; color:var(--txt); font:16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         background: radial-gradient(1200px 600px at 50% -10%, #0a3a33 0%, var(--bg) 45%, var(--bg2) 100%) fixed; }
+  .page { max-width:480px; margin:0 auto; }
+
+  /* Cabecera: la ilustración va de fondo (cabecera.webp); los textos y botones son HTML real encima. */
+  .hero { position:relative; padding:22px 18px 22px; min-height:380px; overflow:hidden;
+          background:#04201c url("cabecera.webp") right center / cover no-repeat; }
+  .hero::before { content:""; position:absolute; inset:0; pointer-events:none;
+          background: linear-gradient(90deg, rgba(4,32,28,.96) 0%, rgba(4,32,28,.82) 42%, rgba(4,32,28,.1) 85%),
+                      linear-gradient(0deg, var(--bg) 0%, rgba(4,32,28,0) 28%); }
+  .hero > * { position:relative; }
+  .shapes { display:flex; gap:12px; margin-bottom:14px; }
+  .shapes svg { width:34px; height:34px; display:block; }
+  h1 { margin:0; font-size:clamp(2rem, 10vw, 2.9rem); line-height:.98; font-weight:900; letter-spacing:-.01em; text-transform:uppercase; max-width:11ch; }
+  h1 .q { display:block; color:var(--pink); font-size:.62em; line-height:1.05; margin-top:.35em; max-width:none; }
+  .pill { display:inline-block; margin:16px 0 10px; padding:.45rem 1rem; border:2px solid var(--teal); border-radius:999px; font-weight:800; letter-spacing:.03em; background:rgba(4,32,28,.55); }
+  .plan { margin:0 0 14px; color:var(--txt); font-size:1rem; max-width:20rem; }
+  .plan span { display:block; }
+  .escuchar { display:inline-flex; align-items:center; gap:.6rem; width:auto; padding:.6rem 1.1rem; font-size:1rem; font-weight:700; color:var(--txt);
+              background:rgba(4,32,28,.55); border:2px solid var(--pink); border-radius:999px; cursor:pointer; }
+  .escuchar svg { width:22px; height:22px; fill:var(--pink); }
+  .escuchar[disabled] { opacity:.6; }
+
+  /* Tarjeta del formulario */
+  .card { margin:-8px 14px 28px; padding:22px 20px 20px; background:var(--card); border:2px solid var(--line); border-radius:22px;
+          box-shadow:0 0 28px rgba(25,195,166,.18), inset 0 0 40px rgba(25,195,166,.05); }
+  h2 { margin:0; font-size:1.9rem; line-height:1; font-weight:900; text-transform:uppercase; }
+  h2 span { color:var(--pink); }
+  .sub { margin:.35rem 0 1.3rem; color:var(--mut); }
+  label.t { display:block; margin:0 0 .45rem; font-weight:700; }
+  input[type=text] { width:100%; padding:.9rem 1rem; font-size:1.05rem; color:var(--txt); background:#031815; border:2px solid #3b6f66; border-radius:14px; }
+  input[type=text]::placeholder { color:#7e9a92; }
+  input[type=text]:focus { outline:none; border-color:var(--teal); }
+  .field { margin-bottom:1.3rem; }
+  .fotofila { display:flex; align-items:center; gap:16px; }
+  .avatar { flex:none; width:112px; height:112px; border-radius:50%; border:4px solid var(--pink); background:radial-gradient(circle at 50% 35%, #0f5a4e, #052a25); overflow:hidden; display:grid; place-items:center; }
+  .avatar svg { width:100%; height:100%; display:block; }
+  .avatar img { width:100%; height:100%; object-fit:cover; display:none; }
+  .avatar.con svg { display:none; }
+  .avatar.con img { display:block; }
+  .anadir { display:flex; align-items:center; gap:.55rem; width:auto; padding:0; font-size:1.05rem; font-weight:800; color:var(--txt); background:none; border:0; cursor:pointer; text-align:left; }
+  .anadir svg { width:34px; height:34px; stroke:var(--pink); fill:none; stroke-width:1.8; flex:none; }
+  .ayuda { margin:.3rem 0 0; color:var(--mut); font-size:.92rem; }
+  .acepto { display:flex; align-items:center; justify-content:center; gap:.6rem; width:100%; padding:1rem; font-size:1.2rem; font-weight:900; letter-spacing:.02em; text-transform:uppercase;
+            color:#fff; background:var(--pink); border:0; border-radius:16px; cursor:pointer; box-shadow:0 6px 22px rgba(255,31,122,.35); }
+  .acepto svg { width:26px; height:26px; stroke:#fff; fill:none; stroke-width:2.4; }
+  .acepto:disabled { opacity:.45; box-shadow:none; cursor:default; }
+  .pie { margin:1rem 0 0; text-align:center; font-style:italic; color:var(--mut); }
+  .err { color:#ff9fbd; margin:.8rem 0 0; }
+  .hecho { text-align:center; padding:1.4rem .4rem; }
+  .hecho h2 { font-size:1.6rem; }
+  .hecho p { color:var(--mut); }
+  .aviso { margin:-8px 14px 28px; padding:1.2rem; border:2px solid var(--line); border-radius:18px; background:var(--card); text-align:center; }
   [hidden] { display:none !important; }
+  .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 </style>
 </head>
 <body>
-<main class="wrap">
-  <div class="shapes" aria-hidden="true"><i></i><i></i><i style="border-radius:3px"></i></div>
-  <h1>Únete a <span>la fiesta</span></h1>
-  <p class="date">19.12.26</p>
-  <p class="plan">Sábado · <b>13:00</b> brunch · <b>15:00</b> la actividad · después, tardeo</p>
+<div class="page">
 
-  <form id="form" class="card" hidden>
-    <div class="field">
-      <label for="nombre">Tu nombre</label>
-      <input id="nombre" type="text" maxlength="40" autocomplete="given-name">
+  <header class="hero">
+    <div class="shapes" aria-hidden="true">
+      <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="#ff1f7a" stroke-width="4"/></svg>
+      <svg viewBox="0 0 40 40"><path d="M20 5 L36 34 H4 Z" fill="none" stroke="#19c3a6" stroke-width="4" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 40 40"><rect x="5" y="5" width="30" height="30" fill="none" stroke="#ff1f7a" stroke-width="4"/></svg>
     </div>
+    <h1>Te han elegido. <span class="q">¿Aceptas el reto?</span></h1>
+    <p class="pill">19 DIC 2026 · 13:00 h</p>
+    <p class="plan"><span>Brunch y juegos · 13:00 h</span><span>Después, tardeo en Bling Bling</span></p>
+    <button id="escuchar" class="escuchar" type="button" aria-label="Escuchar invitación">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+      <span id="escucharTxt">Escuchar invitación</span>
+    </button>
+  </header>
+
+  <form id="form" class="card" hidden novalidate>
+    <h2>Crea tu <span>jugador</span></h2>
+    <p class="sub">Tu primera prueba empieza aquí.</p>
+
     <div class="field">
-      <label for="foto">Tu foto</label>
-      <input id="foto" type="file" accept="image/*">
-      <img id="prev" class="prev" alt="Vista previa de tu foto">
+      <label class="t" for="nombre">¿Cómo te llamas?</label>
+      <input id="nombre" type="text" maxlength="40" autocomplete="given-name" placeholder="Tu nombre">
     </div>
-    <button id="enviar" type="submit" disabled>Entrar</button>
+
+    <div class="field">
+      <span class="t" style="display:block;margin-bottom:.6rem;font-weight:700">Tu foto de jugador</span>
+      <div class="fotofila">
+        <div id="avatar" class="avatar">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <path d="M0 120 C6 92 30 82 60 82 C90 82 114 92 120 120 Z" fill="#06362f"/>
+            <path d="M24 120 C28 98 40 88 60 88 C80 88 92 98 96 120" fill="none" stroke="#cfe9e3" stroke-width="3" opacity=".7"/>
+            <ellipse cx="60" cy="48" rx="21" ry="25" fill="#021a16"/>
+            <path d="M40 40 C42 20 78 20 80 40 C70 32 50 32 40 40 Z" fill="#021a16"/>
+          </svg>
+          <img id="prev" alt="Vista previa de tu foto">
+        </div>
+        <div>
+          <button id="anadir" class="anadir" type="button">
+            <svg viewBox="0 0 36 36" aria-hidden="true"><path d="M5 12h5l2-4h12l2 4h5v17H5z" stroke-linejoin="round"/><circle cx="18" cy="20" r="5.2"/></svg>
+            <span id="anadirTxt">Añadir mi foto</span>
+          </button>
+          <p class="ayuda">Una foto de frente, con buena luz.</p>
+        </div>
+      </div>
+      <input id="foto" class="sr" type="file" accept="image/*" tabindex="-1" aria-label="Añadir mi foto">
+    </div>
+
+    <button id="enviar" class="acepto" type="submit" disabled>
+      <span id="enviarTxt">Acepto el reto</span>
+      <svg viewBox="0 0 28 28" aria-hidden="true"><path d="M4 14h19M15 6l8 8-8 8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
     <p id="err" class="err" role="alert" hidden></p>
+    <p class="pie">Las reglas las ponemos nosotros. Las risas, entre todos.</p>
   </form>
 
-  <section id="hecho" class="card" hidden>
-    <h2 style="margin-top:0">¡Listo, <span id="quien"></span>!</h2>
-    <p>Este es tu código para entrar a la app el día de la fiesta. Hazle una captura y guárdalo:</p>
-    <div id="codigo" class="code"></div>
-    <p class="mut">No lo compartas con nadie. Te lo volveremos a recordar.</p>
+  <section id="hecho" class="card hecho" hidden role="status">
+    <h2>Inscripción <span>completada.</span></h2>
+    <p style="font-size:1.2rem;color:var(--txt)">Nos vemos en el juego.</p>
   </section>
 
-  <p id="cerrado" class="card" role="status" hidden>Este enlace no es válido. Pide el enlace al organizador.</p>
-</main>
+  <p id="cerrado" class="aviso" role="status" hidden>Este enlace no es válido. Pide el enlace al organizador.</p>
+</div>
 
 <script>
 // Configuración pública (la clave «publishable» está pensada para ir en el navegador; solo permite subir).
 const SUPABASE_URL = "https://thloealibyuhqxgesjse.supabase.co";
 const SUPABASE_KEY = "sb_publishable_WWQgAfObHlQC7tHGGxmh7w_hhhyDftM";
 const MAX_LADO = 1280;
+const TEXTO_VOZ = "Atención, participante. Has recibido una invitación al cumpleaños de Ignacio. Tu primera prueba es sencilla: escribe tu nombre y añade tu foto. Las siguientes… ya veremos.";
 
 const $ = (id) => document.getElementById(id);
 const clave = new URLSearchParams(location.search).get("k") || "";
 const ALFABETO = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 let archivo = null;
 
-// Si ya se apuntó desde este móvil, enseña su código en lugar del formulario.
-try {
-  const prev = JSON.parse(localStorage.getItem("sg_invitado") || "null");
-  if (prev && prev.codigo) mostrarHecho(prev.nombre, prev.codigo);
-} catch (e) {}
-
-if (!/^[A-Za-z0-9]{10,20}$/.test(clave)) {
-  if ($("hecho").hidden) $("cerrado").hidden = false;
-} else if ($("hecho").hidden) {
-  $("form").hidden = false;
+/* ------------------------------------------------------------------ sonido (se crea al primer toque) */
+let ctx = null;
+function audio() {
+  if (!ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (AC) ctx = new AC(); }
+  if (ctx && ctx.state === "suspended") ctx.resume();
+  return ctx;
+}
+// Nota de «caja de música electrónica»: seno + armónico triangular con caída rápida.
+function nota(freq, t0, dur, vol) {
+  const a = audio(); if (!a) return;
+  const g = a.createGain();
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  g.connect(a.destination);
+  const o1 = a.createOscillator(); o1.type = "sine"; o1.frequency.value = freq; o1.connect(g);
+  const o2 = a.createOscillator(); o2.type = "triangle"; o2.frequency.value = freq * 2; const g2 = a.createGain(); g2.gain.value = 0.25; o2.connect(g2); g2.connect(g);
+  o1.start(t0); o2.start(t0); o1.stop(t0 + dur + 0.05); o2.stop(t0 + dur + 0.05);
+}
+// Tres notas cortas antes de la voz. Devuelve cuánto duran (s).
+function tresNotas() {
+  const a = audio(); if (!a) return 0;
+  const t = a.currentTime + 0.05;
+  nota(659.25, t, 0.45, 0.22); nota(783.99, t + 0.26, 0.45, 0.22); nota(1046.5, t + 0.52, 0.8, 0.22);
+  return 1.45;
+}
+// Pequeño acorde de victoria al completar la inscripción.
+function acordeVictoria() {
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + 0.03;
+  [523.25, 659.25, 783.99].forEach((f, i) => nota(f, t + i * 0.09, 1.1, 0.16));
+  nota(1046.5, t + 0.3, 1.4, 0.18);
 }
 
-function mostrarHecho(nombre, codigo) {
-  $("form").hidden = true;
-  $("cerrado").hidden = true;
-  $("quien").textContent = nombre;
-  $("codigo").textContent = codigo;
-  $("hecho").hidden = false;
+/* ------------------------------------------------------------------ locutora: voz.mp3 si existe; si no, la voz del móvil */
+let hayMp3 = null;
+fetch("voz.mp3", { method: "HEAD" }).then((r) => { hayMp3 = r.ok; }).catch(() => { hayMp3 = false; });
+
+function vozDelMovil() {
+  const vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
+  const es = vs.filter((v) => /^es(-|_|$)/i.test(v.lang));
+  return es.find((v) => /(mónica|monica|paulina|helena|laura|elvira|google español|female|mujer)/i.test(v.name)) || es.find((v) => /es-ES/i.test(v.lang)) || es[0] || null;
 }
 
+let sonando = false;
+function fin() { sonando = false; $("escuchar").disabled = false; $("escucharTxt").textContent = "Escuchar invitación"; }
+$("escuchar").addEventListener("click", () => {
+  if (sonando) return;
+  sonando = true; $("escuchar").disabled = true; $("escucharTxt").textContent = "Reproduciendo…";
+  const espera = tresNotas();
+  setTimeout(() => {
+    if (hayMp3) {
+      const el = new Audio("voz.mp3");
+      el.onended = fin; el.onerror = fin;
+      el.play().catch(fin);
+    } else if (window.speechSynthesis) {
+      const u = new SpeechSynthesisUtterance(TEXTO_VOZ);
+      u.lang = "es-ES"; u.rate = 0.92; u.pitch = 1.05;
+      const v = vozDelMovil(); if (v) u.voice = v;
+      u.onend = fin; u.onerror = fin;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    } else fin();
+  }, espera * 1000);
+});
+
+/* ------------------------------------------------------------------ estado inicial */
+function mostrarHecho() {
+  $("form").hidden = true; $("cerrado").hidden = true; $("hecho").hidden = false;
+}
+try { if (localStorage.getItem("sg_invitado")) mostrarHecho(); } catch (e) {}
+if ($("hecho").hidden) {
+  if (/^[A-Za-z0-9]{10,20}$/.test(clave)) $("form").hidden = false; else $("cerrado").hidden = false;
+}
+
+/* ------------------------------------------------------------------ formulario */
 function nuevoCodigo() {
   const b = crypto.getRandomValues(new Uint8Array(8));
   let s = "";
   for (const x of b) s += ALFABETO[x % ALFABETO.length];
   return s;
 }
-
 function uuid() {
   return crypto.randomUUID ? crypto.randomUUID() : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     return (c === "x" ? r : (r & 3) | 8).toString(16);
   });
 }
-
-function validar() {
-  $("enviar").disabled = !(archivo && $("nombre").value.trim().length >= 2);
-}
+function validar() { $("enviar").disabled = !(archivo && $("nombre").value.trim().length >= 2); }
 $("nombre").addEventListener("input", validar);
+$("anadir").addEventListener("click", () => $("foto").click());
+$("avatar").addEventListener("click", () => $("foto").click());
 $("foto").addEventListener("change", (e) => {
   archivo = e.target.files[0] || null;
-  const p = $("prev");
-  if (archivo) { p.src = URL.createObjectURL(archivo); p.style.display = "block"; } else { p.style.display = "none"; }
+  const av = $("avatar");
+  if (archivo) { $("prev").src = URL.createObjectURL(archivo); av.classList.add("con"); $("anadirTxt").textContent = "Cambiar mi foto"; }
+  else { av.classList.remove("con"); $("anadirTxt").textContent = "Añadir mi foto"; }
   validar();
 });
 
@@ -132,16 +256,15 @@ async function aJpeg(file) {
   if (!blob) throw new Error("jpeg");
   return blob;
 }
-
-function fallo(t) { const e = $("err"); e.textContent = t; e.hidden = false; $("enviar").disabled = false; $("enviar").textContent = "Entrar"; }
+function fallo(t) { const e = $("err"); e.textContent = t; e.hidden = false; $("enviar").disabled = false; $("enviarTxt").textContent = "Acepto el reto"; }
 
 $("form").addEventListener("submit", async (ev) => {
   ev.preventDefault();
+  audio(); // se crea dentro del toque para que el acorde final pueda sonar
   $("err").hidden = true;
   const nombre = $("nombre").value.replace(/\s+/g, " ").trim();
   if (nombre.length < 2 || nombre.length > 40) return fallo("Escribe tu nombre (entre 2 y 40 letras).");
-  $("enviar").disabled = true;
-  $("enviar").textContent = "Enviando…";
+  $("enviar").disabled = true; $("enviarTxt").textContent = "Enviando…";
   let blob;
   try { blob = await aJpeg(archivo); } catch (e) { return fallo("No se pudo leer la foto. Prueba con otra (JPG o PNG)."); }
   const id = uuid();
@@ -156,8 +279,9 @@ $("form").addEventListener("submit", async (ev) => {
   } catch (e) {
     return fallo("Sin conexión. Inténtalo de nuevo cuando vuelva la señal.");
   }
-  try { localStorage.setItem("sg_invitado", JSON.stringify({ nombre, codigo })); } catch (e) {}
-  mostrarHecho(nombre, codigo);
+  try { localStorage.setItem("sg_invitado", "1"); } catch (e) {}
+  mostrarHecho();
+  acordeVictoria();
 });
 </script>
 </body>
