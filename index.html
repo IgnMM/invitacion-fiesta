@@ -198,6 +198,9 @@ function acordeVictoria() {
 
 /* ------------------------------------------------------------------ locutora: voz.mp3 si existe; si no, la voz del móvil */
 // Si hay voz.mp3 suena ella SOLA (ya lleva su propia música); las tres notas de caja de música solo acompañan a la voz del móvil.
+// El audio empieza con cuatro notas (do 0,00 s · mi 0,40 s · sol 0,75 s · do agudo 1,15 s) y la voz entra hacia los 3 s.
+// INICIO_VOZ salta las primeras; para probar sin publicar de nuevo se puede añadir al enlace «&inicio=0.75».
+const INICIO_VOZ = Math.min(2.5, Math.max(0, Number(new URLSearchParams(location.search).get("inicio")) || 0));
 const hayMp3 = fetch("voz.mp3", { method: "HEAD" }).then((r) => r.ok).catch(() => false);
 
 function vozDelMovil() {
@@ -212,7 +215,7 @@ $("escuchar").addEventListener("click", async () => {
   if (sonando) return;
   sonando = true; $("escuchar").disabled = true; $("escucharTxt").textContent = "Reproduciendo…";
   if (await hayMp3) {
-    const el = new Audio("voz.mp3");
+    const el = new Audio("voz.mp3" + (INICIO_VOZ > 0 ? "#t=" + INICIO_VOZ : ""));
     el.onended = fin; el.onerror = fin;
     el.play().catch(fin);
     return;
