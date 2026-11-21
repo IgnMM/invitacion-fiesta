@@ -197,8 +197,8 @@ function acordeVictoria() {
 }
 
 /* ------------------------------------------------------------------ locutora: voz.mp3 si existe; si no, la voz del móvil */
-let hayMp3 = null;
-fetch("voz.mp3", { method: "HEAD" }).then((r) => { hayMp3 = r.ok; }).catch(() => { hayMp3 = false; });
+// Si hay voz.mp3 suena ella SOLA (ya lleva su propia música); las tres notas de caja de música solo acompañan a la voz del móvil.
+const hayMp3 = fetch("voz.mp3", { method: "HEAD" }).then((r) => r.ok).catch(() => false);
 
 function vozDelMovil() {
   const vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
@@ -208,16 +208,18 @@ function vozDelMovil() {
 
 let sonando = false;
 function fin() { sonando = false; $("escuchar").disabled = false; $("escucharTxt").textContent = "Escuchar invitación"; }
-$("escuchar").addEventListener("click", () => {
+$("escuchar").addEventListener("click", async () => {
   if (sonando) return;
   sonando = true; $("escuchar").disabled = true; $("escucharTxt").textContent = "Reproduciendo…";
+  if (await hayMp3) {
+    const el = new Audio("voz.mp3");
+    el.onended = fin; el.onerror = fin;
+    el.play().catch(fin);
+    return;
+  }
   const espera = tresNotas();
   setTimeout(() => {
-    if (hayMp3) {
-      const el = new Audio("voz.mp3");
-      el.onended = fin; el.onerror = fin;
-      el.play().catch(fin);
-    } else if (window.speechSynthesis) {
+    if (window.speechSynthesis) {
       const u = new SpeechSynthesisUtterance(TEXTO_VOZ);
       u.lang = "es-ES"; u.rate = 0.92; u.pitch = 1.05;
       const v = vozDelMovil(); if (v) u.voice = v;
