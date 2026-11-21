@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>SQUID GAME · Únete</title>
+<style>
+  :root { --bg:#070909; --card:#151818; --line:#2b312f; --txt:#eef2f0; --mut:#9aa6a1; --pink:#ed1b76; --teal:#029f98; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font:16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width:420px; margin:0 auto; padding:24px 16px 48px; }
+  .shapes { display:flex; gap:10px; margin-bottom:10px; }
+  .shapes i { width:26px; height:26px; border:3px solid var(--pink); display:block; }
+  .shapes i:nth-child(1) { border-radius:50%; }
+  .shapes i:nth-child(2) { border-color:var(--teal); clip-path:polygon(50% 0, 100% 100%, 0 100%); background:var(--teal); opacity:.9; }
+  h1 { font-size:2rem; line-height:1.05; margin:.2rem 0 .3rem; text-transform:uppercase; }
+  h1 span { color:var(--pink); }
+  .date { color:var(--mut); letter-spacing:.2em; margin:0 0 1.2rem; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px; }
+  label { display:block; margin:.2rem 0 .35rem; color:var(--mut); }
+  input[type=text] { width:100%; padding:.8rem; font-size:1rem; color:var(--txt); background:#0d1010; border:1px solid var(--line); border-radius:12px; }
+  input[type=file] { width:100%; color:var(--mut); }
+  .field { margin-bottom:1rem; }
+  .prev { width:160px; height:160px; object-fit:cover; border-radius:16px; border:3px solid var(--teal); margin-top:.6rem; display:none; }
+  button { width:100%; padding:.9rem; font-size:1.05rem; font-weight:700; color:#fff; background:var(--pink); border:0; border-radius:12px; }
+  button:disabled { opacity:.45; }
+  .err { color:#ff8aa8; margin:.6rem 0 0; }
+  .code { font:700 2rem/1 ui-monospace, Consolas, monospace; letter-spacing:.15em; text-align:center; padding:.9rem; background:#0d1010; border:2px dashed var(--teal); border-radius:14px; margin:.8rem 0; user-select:all; }
+  .mut { color:var(--mut); }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="shapes" aria-hidden="true"><i></i><i></i><i style="border-radius:3px"></i></div>
+  <h1>Únete a <span>la fiesta</span></h1>
+  <p class="date">12.12.26</p>
+
+  <form id="form" class="card" hidden>
+    <div class="field">
+      <label for="nombre">Tu nombre</label>
+      <input id="nombre" type="text" maxlength="40" autocomplete="given-name">
+    </div>
+    <div class="field">
+      <label for="foto">Tu foto</label>
+      <input id="foto" type="file" accept="image/*">
+      <img id="prev" class="prev" alt="Vista previa de tu foto">
+    </div>
+    <button id="enviar" type="submit" disabled>Entrar</button>
+    <p id="err" class="err" role="alert" hidden></p>
+  </form>
+
+  <section id="hecho" class="card" hidden>
+    <h2 style="margin-top:0">¡Listo, <span id="quien"></span>!</h2>
+    <p>Este es tu código para entrar a la app el día de la fiesta. Hazle una captura y guárdalo:</p>
+    <div id="codigo" class="code"></div>
+    <p class="mut">No lo compartas con nadie. Te lo volveremos a recordar.</p>
+  </section>
+
+  <p id="cerrado" class="card" role="status" hidden>Este enlace no es válido. Pide el enlace al organizador.</p>
+</main>
+
+<script>
+// Configuración pública (la clave «publishable» está pensada para ir en el navegador; solo permite subir).
+const SUPABASE_URL = "https://thloealibyuhqxgesjse.supabase.co";
+const SUPABASE_KEY = "sb_publishable_WWQgAfObHlQC7tHGGxmh7w_hhhyDftM";
+const MAX_LADO = 1280;
+
+const $ = (id) => document.getElementById(id);
+const clave = new URLSearchParams(location.search).get("k") || "";
+const ALFABETO = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+let archivo = null;
+
+// Si ya se apuntó desde este móvil, enseña su código en lugar del formulario.
+try {
+  const prev = JSON.parse(localStorage.getItem("sg_invitado") || "null");
+  if (prev && prev.codigo) mostrarHecho(prev.nombre, prev.codigo);
+} catch (e) {}
+
+if (!/^[A-Za-z0-9]{10,20}$/.test(clave)) {
+  if ($("hecho").hidden) $("cerrado").hidden = false;
+} else if ($("hecho").hidden) {
+  $("form").hidden = false;
+}
+
+function mostrarHecho(nombre, codigo) {
+  $("form").hidden = true;
+  $("cerrado").hidden = true;
+  $("quien").textContent = nombre;
+  $("codigo").textContent = codigo;
+  $("hecho").hidden = false;
+}
+
+function nuevoCodigo() {
+  const b = crypto.getRandomValues(new Uint8Array(8));
+  let s = "";
+  for (const x of b) s += ALFABETO[x % ALFABETO.length];
+  return s;
+}
+
+function uuid() {
+  return crypto.randomUUID ? crypto.randomUUID() : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 3) | 8).toString(16);
+  });
+}
+
+function validar() {
+  $("enviar").disabled = !(archivo && $("nombre").value.trim().length >= 2);
+}
+$("nombre").addEventListener("input", validar);
+$("foto").addEventListener("change", (e) => {
+  archivo = e.target.files[0] || null;
+  const p = $("prev");
+  if (archivo) { p.src = URL.createObjectURL(archivo); p.style.display = "block"; } else { p.style.display = "none"; }
+  validar();
+});
+
+// Reduce a JPEG de hasta MAX_LADO px: respeta la orientación y no conserva EXIF/GPS.
+async function aJpeg(file) {
+  const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+  const k = Math.min(1, MAX_LADO / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas");
+  c.width = Math.round(bmp.width * k);
+  c.height = Math.round(bmp.height * k);
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+  const blob = await new Promise((res) => c.toBlob(res, "image/jpeg", 0.86));
+  if (!blob) throw new Error("jpeg");
+  return blob;
+}
+
+function fallo(t) { const e = $("err"); e.textContent = t; e.hidden = false; $("enviar").disabled = false; $("enviar").textContent = "Entrar"; }
+
+$("form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  $("err").hidden = true;
+  const nombre = $("nombre").value.replace(/\s+/g, " ").trim();
+  if (nombre.length < 2 || nombre.length > 40) return fallo("Escribe tu nombre (entre 2 y 40 letras).");
+  $("enviar").disabled = true;
+  $("enviar").textContent = "Enviando…";
+  let blob;
+  try { blob = await aJpeg(archivo); } catch (e) { return fallo("No se pudo leer la foto. Prueba con otra (JPG o PNG)."); }
+  const id = uuid();
+  const ruta = clave + "/" + id + ".jpg";
+  const codigo = nuevoCodigo();
+  const h = { apikey: SUPABASE_KEY };
+  try {
+    const up = await fetch(SUPABASE_URL + "/storage/v1/object/fotos/" + ruta, { method: "POST", headers: { ...h, "Content-Type": "image/jpeg", "x-upsert": "false" }, body: blob });
+    if (!up.ok) return fallo(up.status === 403 || up.status === 400 ? "Este enlace no es válido o está cerrado." : "No se pudo subir la foto. Inténtalo de nuevo.");
+    const ins = await fetch(SUPABASE_URL + "/rest/v1/invitados", { method: "POST", headers: { ...h, "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ nombre, codigo, foto: ruta }) });
+    if (!ins.ok) return fallo("No se pudo guardar. Inténtalo de nuevo.");
+  } catch (e) {
+    return fallo("Sin conexión. Inténtalo de nuevo cuando vuelva la señal.");
+  }
+  try { localStorage.setItem("sg_invitado", JSON.stringify({ nombre, codigo })); } catch (e) {}
+  mostrarHecho(nombre, codigo);
+});
+</script>
+</body>
+</html>
